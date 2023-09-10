@@ -1,5 +1,6 @@
 var http = require('http'), 
     fs = require('fs'), 
+    url = require('url'),
     port = 8080;
 
 /* Global variables */
@@ -9,7 +10,22 @@ var requestHandler = function(request, response) {
   /*Investigate the request object. 
     You will need to use several of its properties: url and method
   */
-  //console.log(request);
+  var parsedUrl = url.parse(request.url); 
+  //console.log(request.method);
+  if(request.method !='GET' || parsedUrl.pathname != '/listings' )
+	{
+	    response.writeHead(404,"Not Found");
+	    response.write("Bad gateway error");
+	    response.end();
+    }
+    else
+    {
+        //console.log("listings");
+        response.writeHead(200, { 'Content-Type': 'text/html' });
+	//response.writeHead(200, { 'Content-Type': 'application/json' });
+        //console.log("writehead End");
+        response.end(JSON.stringify(listingData));
+    }
 
   /*
     Your request handler should send listingData in the JSON format as a response if a GET request 
@@ -27,7 +43,6 @@ var requestHandler = function(request, response) {
    
     HINT: Explore mdn web docs for resources on how to use javascript.
     Helpful example: if-else structure- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
-
     */
 };
 
@@ -47,14 +62,23 @@ fs.readFile('listings.json', 'utf8', function(err, data) {
     /*this resource gives you an idea of the general format err objects and Throwing an existing object.
     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw#throwing_an_existing_object
    */
-  
+   if(err) //ppt says that we don't have to worry about error handling now. err is enough.
+   {
+       throw err;
+   }
+   
 
    //Save the data in the listingData variable already defined
+   listingData = JSON.parse(data);
   
 
   //Creates the server
+  server = http.createServer(requestHandler);
   
   //Start the server
-
-
+  server.listen(port, function() 
+        {
+            console.log('Server listening on: http://127.0.0.1:' + port);
+        }
+    );
 });
